@@ -5,9 +5,10 @@ final class SingleImageViewController: UIViewController {
     @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var imageView: UIImageView!
 
-    var image: UIImage! {
+    var image: UIImage? {
         didSet {
-            guard isViewLoaded else { return }
+            // Безопасно разворачиваем опционал
+            guard isViewLoaded, let image = image else { return }
             imageView.image = image
             rescaleAndCenterImageInScrollView(image: image)
         }
@@ -18,7 +19,11 @@ final class SingleImageViewController: UIViewController {
         scrollView.minimumZoomScale = 0.1
         scrollView.maximumZoomScale = 1.25
         scrollView.delegate = self
-        imageView.image = image
+        
+        if let image = image {
+            imageView.image = image
+            rescaleAndCenterImageInScrollView(image: image)
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -33,8 +38,10 @@ final class SingleImageViewController: UIViewController {
     }
 
     @IBAction private func didTapShareButton(_ sender: UIButton) {
+        // Безопасно разворачиваем для шаринга
+        guard let image = image else { return }
         let activityVC = UIActivityViewController(
-            activityItems: [image as Any],
+            activityItems: [image],
             applicationActivities: nil
         )
         present(activityVC, animated: true)

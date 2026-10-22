@@ -6,7 +6,7 @@ final class ProfileViewController: UIViewController {
     private let avatarImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "avatar")
-        imageView.layer.cornerRadius = 35           
+        imageView.layer.cornerRadius = 35
         imageView.clipsToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -41,15 +41,14 @@ final class ProfileViewController: UIViewController {
     }()
 
     private let logoutButton: UIButton = {
-        let button = UIButton.systemButton(
-            with: UIImage(systemName: "ipad.and.arrow.forward")!,
-            target: nil,
-            action: nil
-        )
+        let button = UIButton(type: .system)
+        if let image = UIImage(systemName: "ipad.and.arrow.forward") {
+            button.setImage(image, for: .normal)
+        }
         button.tintColor = .red
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
-    }()
+    }() // <-- Убедитесь, что эта скобка на месте!
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -69,28 +68,28 @@ final class ProfileViewController: UIViewController {
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            // Avatar 70x70, сверху слева +20
+            // Avatar
             avatarImageView.widthAnchor.constraint(equalToConstant: 70),
             avatarImageView.heightAnchor.constraint(equalToConstant: 70),
             avatarImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             avatarImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
 
-            // Имя — под аватаром +20, слева выровнено с аватаром
+            // Name
             nameLabel.topAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 20),
             nameLabel.leadingAnchor.constraint(equalTo: avatarImageView.leadingAnchor),
             nameLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
 
-            // Логин — под именем +8
+            // Login
             loginNameLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8),
             loginNameLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             loginNameLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
 
-            // Описание — под логином +8
+            // Description
             descriptionLabel.topAnchor.constraint(equalTo: loginNameLabel.bottomAnchor, constant: 8),
             descriptionLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             descriptionLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
 
-            // Кнопка выхода — справа +20, по центру аватара
+            // Logout Button
             logoutButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
             logoutButton.centerYAnchor.constraint(equalTo: avatarImageView.centerYAnchor)
         ])
