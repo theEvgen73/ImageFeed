@@ -20,6 +20,7 @@ final class WebViewViewController: UIViewController {
 
     // MARK: - Properties
     weak var delegate: WebViewViewControllerDelegate?
+    private let progressCompletionThreshold = 0.0001
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -71,12 +72,12 @@ final class WebViewViewController: UIViewController {
         guard let webView = webView, let progressView = progressView else { return }
         
         progressView.progress = Float(webView.estimatedProgress)
-        progressView.isHidden = fabs(webView.estimatedProgress - 1.0) <= 0.0001
+        progressView.isHidden = fabs(webView.estimatedProgress - 1.0) <= progressCompletionThreshold
     }
 
     private func loadAuthView() {
-        guard let webView = webView else { return }
-        
+        guard let webView = webView, let progressView = progressView else { return }
+
         guard var urlComponents = URLComponents(string: WebViewConstants.unsplashAuthorizeURLString) else {
             print("❌ Ошибка: Не удалось создать URLComponents")
             return

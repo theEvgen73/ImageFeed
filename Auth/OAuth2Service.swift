@@ -43,7 +43,7 @@ final class OAuth2Service {
         }
         
         let task = URLSession.shared.data(for: request) { result in
-            // guard let self = self else { return }  <-- УДАЛЕНО
+            // guard let self = self else { return }
             
             switch result {
             case .success(let data):
