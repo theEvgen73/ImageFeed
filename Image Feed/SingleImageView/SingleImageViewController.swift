@@ -2,20 +2,20 @@ import UIKit
 
 final class SingleImageViewController: UIViewController {
 
-    @IBOutlet weak var scrollView: UIScrollView!
-    @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var scrollView: UIScrollView?
+    @IBOutlet weak var imageView: UIImageView?
 
     var image: UIImage? {
         didSet {
-            // Безопасно разворачиваем опционал
             guard isViewLoaded, let image = image else { return }
-            imageView.image = image
+            imageView?.image = image
             rescaleAndCenterImageInScrollView(image: image)
         }
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        guard let scrollView = scrollView, let imageView = imageView else { return }
         scrollView.minimumZoomScale = 0.1
         scrollView.maximumZoomScale = 1.25
         scrollView.delegate = self
@@ -48,6 +48,7 @@ final class SingleImageViewController: UIViewController {
     }
 
     private func rescaleAndCenterImageInScrollView(image: UIImage) {
+        guard let scrollView = scrollView else { return }
         let minZoomScale = scrollView.minimumZoomScale
         let maxZoomScale = scrollView.maximumZoomScale
         view.layoutIfNeeded()

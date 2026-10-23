@@ -15,8 +15,8 @@ protocol WebViewViewControllerDelegate: AnyObject {
 final class WebViewViewController: UIViewController {
 
     // MARK: - IBOutlet
-    @IBOutlet private var webView: WKWebView!
-    @IBOutlet private var progressView: UIProgressView!
+    @IBOutlet private weak var webView: WKWebView?
+    @IBOutlet private weak var progressView: UIProgressView?
 
     // MARK: - Properties
     weak var delegate: WebViewViewControllerDelegate?
@@ -24,14 +24,19 @@ final class WebViewViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        guard let webView = webView, let progressView = progressView else { return }
+        
         webView.navigationDelegate = self
+        progressView.progress = 0.0
+        progressView.isHidden = false
+        
         loadAuthView()
-        updateProgress()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        webView.addObserver(
+        webView?.addObserver(
             self,
             forKeyPath: #keyPath(WKWebView.estimatedProgress),
             options: .new,
@@ -41,7 +46,7 @@ final class WebViewViewController: UIViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        webView.removeObserver(
+        webView?.removeObserver(
             self,
             forKeyPath: #keyPath(WKWebView.estimatedProgress)
         )
@@ -62,9 +67,18 @@ final class WebViewViewController: UIViewController {
     }
 
     // MARK: - Private Methods
+    private func updateProgress() {
+        guard let webView = webView, let progressView = progressView else { return }
+        
+        progressView.progress = Float(webView.estimatedProgress)
+        progressView.isHidden = fabs(webView.estimatedProgress - 1.0) <= 0.0001
+    }
+
     private func loadAuthView() {
+        guard let webView = webView else { return }
+        
         guard var urlComponents = URLComponents(string: WebViewConstants.unsplashAuthorizeURLString) else {
-            print("❌ Failed to create URLComponents")
+            print("❌ Ошибка: Не удалось создать URLComponents")
             return
         }
 
@@ -76,19 +90,13 @@ final class WebViewViewController: UIViewController {
         ]
 
         guard let url = urlComponents.url else {
-            print("❌ Failed to create URL")
+            print("❌ Ошибка: Не удалось получить URL")
             return
         }
 
-        print("🌐 Loading URL: \(url.absoluteString)")
-
+        print("🌐 Загрузка URL: \(url.absoluteString)")
         let request = URLRequest(url: url)
         webView.load(request)
-    }
-
-    private func updateProgress() {
-        progressView.progress = Float(webView.estimatedProgress)
-        progressView.isHidden = fabs(webView.estimatedProgress - 1.0) <= 0.0001
     }
 
     private func code(from navigationAction: WKNavigationAction) -> String? {
