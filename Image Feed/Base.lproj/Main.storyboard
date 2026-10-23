@@ -269,25 +269,6 @@
             </objects>
             <point key="canvasLocation" x="55.072463768115945" y="91.741071428571431"/>
         </scene>
-        <!--Navigation Controller-->
-        <scene sceneID="WqB-ru-XG1">
-            <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="gK9-yw-C7q" sceneMemberID="viewController">
-                    <toolbarItems/>
-                    <navigationItem key="navigationItem" id="eEx-sl-9ZJ"/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="Cmg-OZ-p6V">
-                        <rect key="frame" x="0.0" y="96" width="414" height="54"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="LQ7-8p-66X" kind="relationship" relationship="rootViewController" id="Wer-wh-Wm2"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="80d-Xi-hOe" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-855.07246376811599" y="91.741071428571431"/>
-        </scene>
         <!--WebViewViewController-->
         <scene sceneID="wV8-9s-x8E">
             <objects>
@@ -344,7 +325,7 @@
                     </view>
                     <navigationItem key="navigationItem" id="8qI-nV-WWs"/>
                     <connections>
-                        <segue destination="gK9-yw-C7q" kind="show" identifier="ShowAuthenticationScreen" id="beZ-yd-pWI"/>
+                        <segue destination="LQ7-8p-66X" kind="show" identifier="ShowAuthenticationScreen" id="eQI-Z1-0AN"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iOk-Rf-Evo" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
