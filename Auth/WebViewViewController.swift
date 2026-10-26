@@ -1,12 +1,10 @@
 import UIKit
 import WebKit
 
-// MARK: - Constants
 enum WebViewConstants {
     static let unsplashAuthorizeURLString = "https://unsplash.com/oauth/authorize"
 }
 
-// MARK: - Protocol
 protocol WebViewViewControllerDelegate: AnyObject {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String)
     func webViewViewControllerDidCancel(_ vc: WebViewViewController)
@@ -14,15 +12,13 @@ protocol WebViewViewControllerDelegate: AnyObject {
 
 final class WebViewViewController: UIViewController {
 
-    // MARK: - IBOutlet
     @IBOutlet private weak var webView: WKWebView?
     @IBOutlet private weak var progressView: UIProgressView?
 
-    // MARK: - Properties
     weak var delegate: WebViewViewControllerDelegate?
-    private let progressCompletionThreshold = 0.0001
+    
+    private var estimatedProgressObservation: NSKeyValueObservation?
 
-    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -31,55 +27,29 @@ final class WebViewViewController: UIViewController {
         webView.navigationDelegate = self
         progressView.progress = 0.0
         progressView.isHidden = false
-        
         loadAuthView()
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        webView?.addObserver(
-            self,
-            forKeyPath: #keyPath(WKWebView.estimatedProgress),
-            options: .new,
-            context: nil
+        
+        estimatedProgressObservation = webView.observe(
+            \.estimatedProgress,
+            options: [],
+            changeHandler: { [weak self] _, _ in
+                guard let self = self else { return }
+                self.updateProgress()
+            }
         )
     }
 
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        webView?.removeObserver(
-            self,
-            forKeyPath: #keyPath(WKWebView.estimatedProgress)
-        )
-    }
-
-    // MARK: - KVO
-    override func observeValue(
-        forKeyPath keyPath: String?,
-        of object: Any?,
-        change: [NSKeyValueChangeKey : Any]?,
-        context: UnsafeMutableRawPointer?
-    ) {
-        if keyPath == #keyPath(WKWebView.estimatedProgress) {
-            updateProgress()
-        } else {
-            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
-        }
-    }
-
-    // MARK: - Private Methods
     private func updateProgress() {
         guard let webView = webView, let progressView = progressView else { return }
-        
         progressView.progress = Float(webView.estimatedProgress)
-        progressView.isHidden = fabs(webView.estimatedProgress - 1.0) <= progressCompletionThreshold
+        progressView.isHidden = fabs(webView.estimatedProgress - 1.0) <= 0.0001
     }
 
     private func loadAuthView() {
-        guard let webView = webView, let progressView = progressView else { return }
-
+        guard let webView = webView else { return }
+        
         guard var urlComponents = URLComponents(string: WebViewConstants.unsplashAuthorizeURLString) else {
-            print("❌ Ошибка: Не удалось создать URLComponents")
+            print("[WebViewViewController]: loadAuthView - Ошибка: Не удалось создать URLComponents")
             return
         }
 
@@ -91,11 +61,10 @@ final class WebViewViewController: UIViewController {
         ]
 
         guard let url = urlComponents.url else {
-            print("❌ Ошибка: Не удалось получить URL")
+            print("[WebViewViewController]: loadAuthView - Ошибка: Не удалось получить URL")
             return
         }
 
-        print("🌐 Загрузка URL: \(url.absoluteString)")
         let request = URLRequest(url: url)
         webView.load(request)
     }
@@ -115,7 +84,6 @@ final class WebViewViewController: UIViewController {
     }
 }
 
-// MARK: - WKNavigationDelegate
 extension WebViewViewController: WKNavigationDelegate {
     func webView(
         _ webView: WKWebView,

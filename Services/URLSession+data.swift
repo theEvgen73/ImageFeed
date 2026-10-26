@@ -26,16 +26,42 @@ extension URLSession {
                 if 200 ..< 300 ~= statusCode {
                     fulfillCompletionOnTheMainThread(.success(data))
                 } else {
-                    print("❌ Server error \(statusCode): \(String(data: data, encoding: .utf8) ?? "")")
+                    print("[dataTask]: NetworkError - код ошибки \(statusCode)")
                     fulfillCompletionOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode)))
                 }
             } else if let error = error {
+                print("[dataTask]: NetworkError - \(error.localizedDescription)")
                 fulfillCompletionOnTheMainThread(.failure(NetworkError.urlRequestError(error)))
             } else {
+                print("[dataTask]: NetworkError - urlSessionError")
                 fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError))
             }
         })
 
+        return task
+    }
+    
+    func objectTask<T: Decodable>(
+        for request: URLRequest,
+        completion: @escaping (Result<T, Error>) -> Void
+    ) -> URLSessionTask {
+        let decoder = JSONDecoder()
+        
+        let task = data(for: request) { result in
+            switch result {
+                case .success(let data):
+                    do {
+                        let decodedObject = try decoder.decode(T.self, from: data)
+                        completion(.success(decodedObject))
+                    } catch {
+                        let dataString = String(data: data, encoding: .utf8) ?? ""
+                        print("[objectTask]: DecodingError - \(error.localizedDescription), Данные: \(dataString)")
+                        completion(.failure(NetworkError.decodingError(error)))
+                    }
+                case .failure(let error):
+                    completion(.failure(error))
+            }
+        }
         return task
     }
 }
