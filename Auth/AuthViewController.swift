@@ -18,7 +18,7 @@ final class AuthViewController: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == showWebViewSegueIdentifier {
             guard let webViewViewController = segue.destination as? WebViewViewController else {
-                assertionFailure("Failed to prepare for \(showWebViewSegueIdentifier)")
+                print("❌ [AuthViewController]: Failed to prepare for \(showWebViewSegueIdentifier)")
                 return
             }
             webViewViewController.delegate = self
@@ -49,13 +49,12 @@ final class AuthViewController: UIViewController {
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
         vc.dismiss(animated: true)
-        
         UIBlockingProgressHUD.show()
         
         OAuth2Service.shared.fetchOAuthToken(code) { [weak self] result in
             UIBlockingProgressHUD.dismiss()
-            
-            guard let self = self else { return }
+            // 3. Сокращение guard let self
+            guard let self else { return }
             
             switch result {
             case .success:

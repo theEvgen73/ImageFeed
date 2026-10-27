@@ -2,7 +2,11 @@ import UIKit
 
 final class SplashViewController: UIViewController {
 
-    // MARK: - UI Elements
+    private enum StoryboardConstants {
+        static let authViewControllerID = "AuthViewController"
+        static let storyboardName = "Main"
+    }
+
     private let logoImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "splash_screen_logo")
@@ -11,22 +15,19 @@ final class SplashViewController: UIViewController {
         return imageView
     }()
 
-    // MARK: - Properties
     private let storage = OAuth2TokenStorage.shared
     private let profileService = ProfileService.shared
     private var didStartInitialCheck = false
 
-    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(red: 0.10, green: 0.11, blue: 0.13, alpha: 1.0)
+        view.backgroundColor = UIColor(named: "ypBlack") ?? UIColor(red: 0.10, green: 0.11, blue: 0.13, alpha: 1.0)
         setupViews()
         setupConstraints()
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-
         guard !didStartInitialCheck else { return }
         didStartInitialCheck = true
 
@@ -37,7 +38,6 @@ final class SplashViewController: UIViewController {
         }
     }
 
-    // MARK: - Setup
     private func setupViews() {
         view.addSubview(logoImageView)
     }
@@ -51,21 +51,14 @@ final class SplashViewController: UIViewController {
         ])
     }
 
-    // MARK: - Navigation
     private func showAuthScreen() {
-        // 1. Создаем AuthViewController из Storyboard
-        let storyboard = UIStoryboard(name: "Main", bundle: .main)
+        let storyboard = UIStoryboard(name: StoryboardConstants.storyboardName, bundle: .main)
         guard let authViewController = storyboard.instantiateViewController(
-            withIdentifier: "AuthViewController"
+            withIdentifier: StoryboardConstants.authViewControllerID
         ) as? AuthViewController else { return }
         
-        // 2. Устанавливаем делегата
         authViewController.delegate = self
-        
-        // 3. Устанавливаем стиль презентации
         authViewController.modalPresentationStyle = .fullScreen
-        
-        // 4. Презентуем
         present(authViewController, animated: true)
     }
 
@@ -87,7 +80,7 @@ final class SplashViewController: UIViewController {
         profileService.fetchProfile(token) { [weak self] result in
             UIBlockingProgressHUD.dismiss()
             
-            guard let self = self else { return }
+            guard let self else { return }
             
             switch result {
             case .success(let profile):
@@ -101,11 +94,9 @@ final class SplashViewController: UIViewController {
     }
 }
 
-// MARK: - AuthViewControllerDelegate
 extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController) {
         vc.dismiss(animated: true)
-        
         guard let token = storage.token else { return }
         fetchProfile(token: token)
     }
