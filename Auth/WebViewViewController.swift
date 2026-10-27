@@ -3,6 +3,7 @@ import WebKit
 
 enum WebViewConstants {
     static let unsplashAuthorizeURLString = "https://unsplash.com/oauth/authorize"
+    static let codePath = "/oauth/authorize/native"
 }
 
 protocol WebViewViewControllerDelegate: AnyObject {
@@ -17,18 +18,31 @@ final class WebViewViewController: UIViewController {
 
     weak var delegate: WebViewViewControllerDelegate?
     
+    private let progressCompletionThreshold = 0.0001
+    private let defaultProgressViewProgress: Float = 0.0
+    private let defaultZoomScale: CGFloat = 0.1
+    private let maxZoomScale: CGFloat = 1.25
+
     private var estimatedProgressObservation: NSKeyValueObservation?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        guard let webView = webView, let progressView = progressView else { return }
-        
-        webView.navigationDelegate = self
-        progressView.progress = 0.0
-        progressView.isHidden = false
+        setupWebView()
         loadAuthView()
-        
+        setupKVO()
+    }
+
+    private func setupWebView() {
+        guard let webView = webView, let progressView = progressView else { return }
+        webView.navigationDelegate = self
+        webView.scrollView.minimumZoomScale = defaultZoomScale
+        webView.scrollView.maximumZoomScale = maxZoomScale
+        progressView.progress = defaultProgressViewProgress
+        progressView.isHidden = false
+    }
+
+    private func setupKVO() {
+        guard let webView = webView else { return }
         estimatedProgressObservation = webView.observe(
             \.estimatedProgress,
             options: [],
@@ -42,12 +56,11 @@ final class WebViewViewController: UIViewController {
     private func updateProgress() {
         guard let webView = webView, let progressView = progressView else { return }
         progressView.progress = Float(webView.estimatedProgress)
-        progressView.isHidden = fabs(webView.estimatedProgress - 1.0) <= 0.0001
+        progressView.isHidden = fabs(webView.estimatedProgress - 1.0) <= progressCompletionThreshold
     }
 
     private func loadAuthView() {
         guard let webView = webView else { return }
-        
         guard var urlComponents = URLComponents(string: WebViewConstants.unsplashAuthorizeURLString) else {
             print("[WebViewViewController]: loadAuthView - Ошибка: Не удалось создать URLComponents")
             return
@@ -73,7 +86,7 @@ final class WebViewViewController: UIViewController {
         if
             let url = navigationAction.request.url,
             let urlComponents = URLComponents(string: url.absoluteString),
-            urlComponents.path == "/oauth/authorize/native",
+            urlComponents.path == WebViewConstants.codePath, // Используем константу
             let items = urlComponents.queryItems,
             let codeItem = items.first(where: { $0.name == "code" })
         {
